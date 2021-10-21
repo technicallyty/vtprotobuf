@@ -28,6 +28,10 @@ type size struct {
 
 var _ generator.FeatureGenerator = (*size)(nil)
 
+const (
+	mathPkg    = protogen.GoImportPath("math")
+)
+
 func (p *size) Name() string {
 	return "size"
 }
@@ -84,7 +88,7 @@ func (p *size) field(proto3, oneof bool, field *protogen.Field, sizeName string)
 	}
 	key := generator.KeySize(fieldNumber, wireType)
 	switch field.Desc.Kind() {
-	case protoreflect.DoubleKind, protoreflect.Fixed64Kind, protoreflect.Sfixed64Kind:
+	case protoreflect.Fixed64Kind, protoreflect.Sfixed64Kind:
 		if packed {
 			p.P(`n+=`, strconv.Itoa(key), `+sov(uint64(len(m.`, fieldname, `)*8))`, `+len(m.`, fieldname, `)*8`)
 		} else if repeated {
@@ -96,13 +100,37 @@ func (p *size) field(proto3, oneof bool, field *protogen.Field, sizeName string)
 		} else {
 			p.P(`n+=`, strconv.Itoa(key+8))
 		}
-	case protoreflect.FloatKind, protoreflect.Fixed32Kind, protoreflect.Sfixed32Kind:
+	case protoreflect.DoubleKind:
+		if packed {
+			p.P(`n+=`, strconv.Itoa(key), `+sov(uint64(len(m.`, fieldname, `)*8))`, `+len(m.`, fieldname, `)*8`)
+		} else if repeated {
+			p.P(`n+=`, strconv.Itoa(key+8), `*len(m.`, fieldname, `)`)
+		} else if !oneof && !nullable {
+			p.P(`if m.`, fieldname, ` != 0 || `, mathPkg.Ident("Signbit"), `(m.`, fieldname,`) {`)
+			p.P(`n+=`, strconv.Itoa(key+8))
+			p.P(`}`)
+		} else {
+			p.P(`n+=`, strconv.Itoa(key+8))
+		}
+	case protoreflect.Fixed32Kind, protoreflect.Sfixed32Kind:
 		if packed {
 			p.P(`n+=`, strconv.Itoa(key), `+sov(uint64(len(m.`, fieldname, `)*4))`, `+len(m.`, fieldname, `)*4`)
 		} else if repeated {
 			p.P(`n+=`, strconv.Itoa(key+4), `*len(m.`, fieldname, `)`)
 		} else if !oneof && !nullable {
 			p.P(`if m.`, fieldname, ` != 0 {`)
+			p.P(`n+=`, strconv.Itoa(key+4))
+			p.P(`}`)
+		} else {
+			p.P(`n+=`, strconv.Itoa(key+4))
+		}
+	case protoreflect.FloatKind:
+		if packed {
+			p.P(`n+=`, strconv.Itoa(key), `+sov(uint64(len(m.`, fieldname, `)*4))`, `+len(m.`, fieldname, `)*4`)
+		} else if repeated {
+			p.P(`n+=`, strconv.Itoa(key+4), `*len(m.`, fieldname, `)`)
+		} else if !oneof && !nullable {
+			p.P(`if m.`, fieldname, ` != 0 || `, mathPkg.Ident("Signbit"), `(m.`, fieldname,`) {`)
 			p.P(`n+=`, strconv.Itoa(key+4))
 			p.P(`}`)
 		} else {

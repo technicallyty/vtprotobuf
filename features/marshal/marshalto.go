@@ -42,6 +42,10 @@ type marshal struct {
 
 var _ generator.FeatureGenerator = (*marshal)(nil)
 
+const (
+	mathPkg    = protogen.GoImportPath("math")
+)
+
 func (p *marshal) GenerateFile(file *protogen.File) bool {
 	proto3 := file.Desc.Syntax() == protoreflect.Proto3
 	for _, message := range file.Messages {
@@ -165,7 +169,7 @@ func (p *marshal) field(proto3, oneof bool, numGen *counter, field *protogen.Fie
 			p.encodeFixed64(p.Ident("math", "Float64bits"), `(float64(*m.`+fieldname, `))`)
 			p.encodeKey(fieldNumber, wireType)
 		} else if !oneof {
-			p.P(`if m.`, fieldname, ` != 0 {`)
+			p.P(`if m.`, fieldname, ` != 0 || `, mathPkg.Ident("Signbit"), `(m.`, fieldname,`) {`)
 			p.encodeFixed64(p.Ident("math", "Float64bits"), `(float64(m.`, fieldname, `))`)
 			p.encodeKey(fieldNumber, wireType)
 			p.P(`}`)
@@ -191,7 +195,7 @@ func (p *marshal) field(proto3, oneof bool, numGen *counter, field *protogen.Fie
 			p.encodeFixed32(p.Ident("math", "Float32bits"), `(float32(*m.`+fieldname, `))`)
 			p.encodeKey(fieldNumber, wireType)
 		} else if !oneof {
-			p.P(`if m.`, fieldname, ` != 0 {`)
+			p.P(`if m.`, fieldname, ` != 0 || `, mathPkg.Ident("Signbit"), `(m.`, fieldname,`) {`)
 			p.encodeFixed32(p.Ident("math", "Float32bits"), `(float32(m.`+fieldname, `))`)
 			p.encodeKey(fieldNumber, wireType)
 			p.P(`}`)
