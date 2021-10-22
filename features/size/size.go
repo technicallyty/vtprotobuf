@@ -130,7 +130,7 @@ func (p *size) field(proto3, oneof bool, field *protogen.Field, sizeName string)
 		} else if repeated {
 			p.P(`n+=`, strconv.Itoa(key+4), `*len(m.`, fieldname, `)`)
 		} else if !oneof && !nullable {
-			p.P(`if m.`, fieldname, ` != 0 || `, mathPkg.Ident("Signbit"), `(m.`, fieldname,`) {`)
+			p.P(`if m.`, fieldname, ` != 0 || `, mathPkg.Ident("Signbit"), `(float64(m.`, fieldname, `)) {`)
 			p.P(`n+=`, strconv.Itoa(key+4))
 			p.P(`}`)
 		} else {

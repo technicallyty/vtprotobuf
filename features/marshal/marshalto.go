@@ -195,7 +195,7 @@ func (p *marshal) field(proto3, oneof bool, numGen *counter, field *protogen.Fie
 			p.encodeFixed32(p.Ident("math", "Float32bits"), `(float32(*m.`+fieldname, `))`)
 			p.encodeKey(fieldNumber, wireType)
 		} else if !oneof {
-			p.P(`if m.`, fieldname, ` != 0 || `, mathPkg.Ident("Signbit"), `(m.`, fieldname,`) {`)
+			p.P(`if m.`, fieldname, ` != 0 || `, mathPkg.Ident("Signbit"), `(float64(m.`, fieldname, `)) {`)
 			p.encodeFixed32(p.Ident("math", "Float32bits"), `(float32(m.`+fieldname, `))`)
 			p.encodeKey(fieldNumber, wireType)
 			p.P(`}`)
